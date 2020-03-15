@@ -5,7 +5,7 @@
 
 using namespace std;
 
-bool checkAround(int (&elevation)[2][4][4], int posx, int posy, int dir){
+bool checkAround(int (&elevation)[4][4], int posx, int posy, int dir){
 	switch (dir)
 	{
 	    case 1:
@@ -38,43 +38,48 @@ bool checkAround(int (&elevation)[2][4][4], int posx, int posy, int dir){
 	}
 }    
 
-void loopAround(vector<int>* path, int* maxPathLength,vector<int>* longestPath, int (&elevation)[2][4][4], int posx, int posy)
+
+void loopAround(vector<int>* path, int* maxPathLength,vector<int>* longestPath, int (&elevation)[4][4], int posx, int posy, int (*pUsedPath)[4][4])
 {
 	if(checkAround(elevation, posx, posy, 1)){
-		cout << elevation[0][posx][posy+1];
-		(*path).push_back(elevation[0][posx][posy+1]);
+		cout << elevation[posx][posy+1];
+		(*path).push_back(elevation[posx][posy+1]);
+		(*pUsedPath)[posx][posy+1] = 1;
 		if(((*path).size()>*maxPathLength) || (((*path).size()==*maxPathLength) && (((*longestPath).front()-(*longestPath).back())<((*path).front()-(*path).back())))){
 			*maxPathLength = (*path).size();
 			*longestPath = *path;
 		}
-		loopAround(path, maxPathLength, longestPath, elevation, posx, posy+1);			
+		loopAround(path, maxPathLength, longestPath, elevation, posx, posy+1, pUsedPath);			
 	}
 	if(checkAround(elevation, posx, posy, 2)){
-		cout << elevation[0][posx-1][posy];
-		(*path).push_back(elevation[0][posx-1][posy]);
+		cout << elevation[posx-1][posy];
+		(*path).push_back(elevation[posx-1][posy]);
+		(*pUsedPath)[posx-1][posy] = 1;
 		if(((*path).size()>*maxPathLength) || (((*path).size()==*maxPathLength) && (((*longestPath).front()-(*longestPath).back())<((*path).front()-(*path).back())))){
 			*maxPathLength = (*path).size();
 			*longestPath = *path;
 		}
-		loopAround(path, maxPathLength, longestPath, elevation, posx-1, posy);			
+		loopAround(path, maxPathLength, longestPath, elevation, posx-1, posy, pUsedPath);			
 	}
 	if(checkAround(elevation, posx, posy, 3)){
-		cout << elevation[0][posx][posy-1];
-		(*path).push_back(elevation[0][posx][posy-1]);
+		cout << elevation[posx][posy-1];
+		(*path).push_back(elevation[posx][posy-1]);
+		(*pUsedPath)[posx][posy-1] = 1;
 		if(((*path).size()>*maxPathLength) || (((*path).size()==*maxPathLength) && (((*longestPath).front()-(*longestPath).back())<((*path).front()-(*path).back())))){
 			*maxPathLength = (*path).size();
 			*longestPath = *path;
 		}
-		loopAround(path, maxPathLength, longestPath, elevation, posx, posy-1);			
+		loopAround(path, maxPathLength, longestPath, elevation, posx, posy-1, pUsedPath);			
 	}
 	if(checkAround(elevation, posx, posy, 4)){
-		cout << elevation[0][posx+1][posy];
-		(*path).push_back(elevation[0][posx+1][posy]);
+		cout << elevation[posx+1][posy];
+		(*path).push_back(elevation[posx+1][posy]);
+		(*pUsedPath)[posx+1][posy] = 1;
 		if(((*path).size()>*maxPathLength) || (((*path).size()==*maxPathLength) && (((*longestPath).front()-(*longestPath).back())<((*path).front()-(*path).back())))){
 			*maxPathLength = (*path).size();
 			*longestPath = *path;
 		}
-		loopAround(path, maxPathLength, longestPath, elevation, posx+1, posy);			
+		loopAround(path, maxPathLength, longestPath, elevation, posx+1, posy, pUsedPath);			
 	}
 	
 	(*path).pop_back();	
@@ -83,77 +88,115 @@ void loopAround(vector<int>* path, int* maxPathLength,vector<int>* longestPath, 
 int main () {
 	int rows = 4;
 	int cols = 4;
-	// int elevation[4][4] = {{4, 8, 7, 3}, {2, 5, 9, 3}, {6, 3, 2, 5}, {4, 4, 1, 6}};
-	int elevation[2][4][4] = {{{4, 8, 7, 3}, {2, 5, 9, 3}, {6, 3, 2, 5}, {0, 0, 0, 0}},{{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}};
+	int elevation[4][4] = {{4, 8, 7, 3}, {2, 5, 9, 3}, {6, 3, 2, 5}, {4, 4, 1, 6}};
+	int usedPath[4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
+	int (*pUsedPath)[4][4] = &usedPath;
+	
 	vector<int> path;
 	vector<int> longestPath;
 	int maxPathLength = 0;	
-
 	int maxVal = 0;
+	
 	int posx;
 	int posy;
-	for(int i = 0; i < rows; i++){
-		for(int j=0; j < cols; j++){
-			if(elevation[0][i][j] > maxVal){
-				maxVal = elevation[0][i][j];
-				posx = i;
-				posy = j;	
+		
+	bool fullOnes = false;
+	do{
+		path.clear();
+		maxVal = 0;
+		for(int i = 0; i < rows; i++){
+			for(int j=0; j < cols; j++){
+				if(elevation[i][j] > maxVal && usedPath[i][j] == 0){
+					maxVal = elevation[i][j];
+					posx = i;
+					posy = j;	
+				}
+			}	
+		}
+		
+		path.push_back(elevation[posx][posy]);
+		usedPath[posx][posy] = 1;
+
+		if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
+			maxPathLength = path.size();
+			longestPath = path;
+		}
+		
+		if(checkAround(elevation, posx, posy, 1)){
+			cout << elevation[posx][posy+1];
+			path.push_back(elevation[posx][posy+1]);
+			usedPath[posx][posy+1] = 1;
+			if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
+				maxPathLength = path.size();
+				longestPath = path;
 			}
-		}	
-	}
-	
-	path.push_back(elevation[0][posx][posy]);
-	if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
-		maxPathLength = path.size();
-		longestPath = path;
-	}
-	
-	if(checkAround(elevation, posx, posy, 1)){
-		cout << elevation[0][posx][posy+1];
-		path.push_back(elevation[0][posx][posy+1]);
-		if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
-			maxPathLength = path.size();
-			longestPath = path;
+			loopAround(&path, &maxPathLength, &longestPath, elevation, posx, posy+1, pUsedPath);		
+		}			
+		if(checkAround(elevation, posx, posy, 2)){
+			cout << elevation[posx-1][posy];
+			path.push_back(elevation[posx-1][posy]);
+			usedPath[posx-1][posy] = 1;
+			if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
+				maxPathLength = path.size();
+				longestPath = path;
+			}
+			loopAround(&path, &maxPathLength, &longestPath, elevation, posx-1, posy, pUsedPath);			
 		}
-		loopAround(&path, &maxPathLength, &longestPath, elevation, posx, posy+1);		
-	}			
-	if(checkAround(elevation, posx, posy, 2)){
-		cout << elevation[0][posx-1][posy];
-		path.push_back(elevation[0][posx-1][posy]);
-		if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
-			maxPathLength = path.size();
-			longestPath = path;
+		if(checkAround(elevation, posx, posy, 3)){
+			cout << elevation[posx][posy-1];
+			path.push_back(elevation[posx][posy-1]);
+			usedPath[posx][posy-1] = 1;
+			if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
+				maxPathLength = path.size();
+				longestPath = path;
+			}
+			loopAround(&path, &maxPathLength, &longestPath, elevation, posx, posy-1, pUsedPath);			
 		}
-		loopAround(&path, &maxPathLength, &longestPath, elevation, posx-1, posy);			
-	}
-	if(checkAround(elevation, posx, posy, 3)){
-		cout << elevation[0][posx][posy-1];
-		path.push_back(elevation[0][posx][posy-1]);
-		if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
-			maxPathLength = path.size();
-			longestPath = path;
+		if(checkAround(elevation, posx, posy, 4)){
+			cout << elevation[posx+1][posy];
+			path.push_back(elevation[posx+1][posy]);
+			usedPath[posx+1][posy] = 1;
+			if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
+				maxPathLength = path.size();
+				longestPath = path;
+			}
+			loopAround(&path, &maxPathLength, &longestPath, elevation, posx+1, posy, pUsedPath);			
 		}
-		loopAround(&path, &maxPathLength, &longestPath, elevation, posx, posy-1);			
-	}
-	if(checkAround(elevation, posx, posy, 4)){
-		cout << elevation[0][posx+1][posy];
-		path.push_back(elevation[0][posx+1][posy]);
-		if((path.size()>maxPathLength) || ((path.size()==maxPathLength) && ((longestPath.front()-longestPath.back())<(path.front()-path.back())))){
-			maxPathLength = path.size();
-			longestPath = path;
+
+		path.pop_back();
+
+		cout << endl;
+		cout << maxVal << endl;
+		cout << posx << endl;
+		cout << posy << endl;
+		
+		fullOnes = true;
+		for (int i = 0; i < rows; i++){
+			for (int j = 0; j < cols; j++){
+				if(usedPath[i][j] == 0){
+					fullOnes = false;
+					goto endOfLoop;
+				}
+			}
 		}
-		loopAround(&path, &maxPathLength, &longestPath, elevation, posx+1, posy);			
+
+		endOfLoop:
+			continue;
 	}
+	while (fullOnes == false);
 	
 	cout << "Now comes the longest path";
 	for (int i = 0; i < longestPath.size(); i++) {		
 		cout << longestPath.at(i) << ' ';
 	}
+
 	cout << endl;
-	cout << maxVal << endl;
-	cout << posx << endl;
-	cout << posy << endl;
-	
-	
+	for (int i = 0; i < rows; i++){
+		for (int j = 0; j < cols; j++){
+			cout << usedPath[i][j] << ' ';
+		}
+		cout << endl;
+	}
+
 	return 0;
 }
