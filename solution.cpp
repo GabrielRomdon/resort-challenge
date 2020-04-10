@@ -150,7 +150,7 @@ int main () {
 			
 		do{
 			path.clear();
-			int maxVal = 0;
+			maxVal = 0;
 			/* Iteration for finding the highes values that haven't been used yet*/
 			for(int i = 0; i < rowN; i++){
 				for(int j=0; j < colN; j++){
